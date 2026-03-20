@@ -303,8 +303,8 @@ export default function App() {
 
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 mt-12 md:mt-0">
         <div className="bg-slate-800 text-white p-6 relative">
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-3">
-            סססטטוס כוננות מפקדים
+          <h1 className="text-white text-2xl md:text-3xl font-bold flex items-center justify-center gap-3">
+            סטטוס כוננות מפקדים
           </h1>
           <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 text-sm bg-slate-700/50 px-3 py-1.5 rounded-full border border-slate-600">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
