@@ -6,7 +6,7 @@ import {
   signInWithCustomToken,
   onAuthStateChanged,
 } from 'firebase/auth';
-import type { User } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
 import {
   getFirestore,
   collection,
@@ -20,29 +20,13 @@ import {
   Loader2,
   BellRing,
   Bell,
+  User as UserIcon,
 } from 'lucide-react';
 
 // הגדרות למשתנים גלובליים כדי ש-TypeScript לא יציג שגיאות
 declare const __firebase_config: string | undefined;
 declare const __app_id: string | undefined;
 declare const __initial_auth_token: string | undefined;
-
-// הגדרות והתחברות למסד הנתונים של הסביבה (Firebase)
-// let app, auth: any, db: any;
-// try {
-//     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-//     app = initializeApp(firebaseConfig);
-//     auth = getAuth(app);
-//     db = getFirestore(app);
-// } catch (error) {
-//     console.error("שגיאה באתחול Firebase:", error);
-// }
-
-// הגדרות והתחברות למסד הנתונים של הסביבה (Firebase)
-// Import the functions you need from the SDKs you need
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -59,20 +43,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// const appId = "my-status-app";
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ'];
+// הוספנו את חמ״ל מעל תאג״ד לרשימה
+const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ', 'חמ״ל', 'תאג״ד'];
 
 export default function App() {
   // הגדרת סוגי נתונים מדויקים (Types) עבור ה-State
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // מנגנון התראות
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // מנגנון התראות (מערך כדי לתמוך בכמה הודעות במקביל)
+  const [toasts, setToasts] = useState<{ id: number; message: string; timestamp: string }[]>([]);
   const [notificationsEnabled, setNotificationsEnabled] =
     useState<boolean>(false);
 
@@ -97,7 +81,13 @@ export default function App() {
           typeof __initial_auth_token !== 'undefined' &&
           __initial_auth_token
         ) {
-          await signInWithCustomToken(auth, __initial_auth_token);
+          try {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } catch (tokenErr: any) {
+            // אם הטוקן של הסביבה לא תואם למסד הנתונים הפרטי שלך, נתעלם ממנו ונתחבר אנונימית
+            console.warn('Custom token mismatch. Falling back to anonymous auth.');
+            await signInAnonymously(auth);
+          }
         } else {
           await signInAnonymously(auth);
         }
@@ -139,9 +129,20 @@ export default function App() {
       : area;
     const msg = `שינוי סטטוס - ${areaName} בפיקוד ${status}`;
 
-    // א. הצגת התראה ויזואלית באתר
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 5000); // נעלם אחרי 5 שניות
+    // יצירת חותמת זמן (שעה ותאריך)
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    const dateString = now.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const timestamp = `${timeString} | ${dateString}`;
+
+    // א. הוספת התראה למערך ההתראות הקופצות באתר
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message: msg, timestamp }]);
+
+    // הסרת ההתראה הספציפית אחרי 5 שניות
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
 
     // ב. השמעת צפצוף
     playBeep();
@@ -257,6 +258,60 @@ export default function App() {
     }
   };
 
+  // פונקציה לבניית הכפתורים בהתאם לאזור (רגיל או תאג״ד)
+  const renderAreaOptions = (area: string) => {
+    let options = [];
+    
+    // אם זה תאג״ד, נציג שמות ספציפיים עם צבעים שונים
+    if (area === 'תאג״ד') {
+      options = [
+        { value: 'רועי', icon: UserIcon, bgClass: 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm', iconClass: 'text-indigo-600' },
+        { value: 'קווין', icon: UserIcon, bgClass: 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm', iconClass: 'text-emerald-600' },
+        { value: 'עמינדב', icon: UserIcon, bgClass: 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm', iconClass: 'text-purple-600' },
+      ];
+    } else if (area === 'חמ״ל') {
+      options = [
+        { value: 'לירון', icon: UserIcon, bgClass: 'bg-pink-50 border-pink-500 text-pink-700 shadow-sm', iconClass: 'text-pink-600' },
+        { value: 'נועם', icon: UserIcon, bgClass: 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm', iconClass: 'text-teal-600' },
+        { value: 'ליהי', icon: UserIcon, bgClass: 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm', iconClass: 'text-amber-600' },
+        { value: 'שירה', icon: UserIcon, bgClass: 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm', iconClass: 'text-cyan-600' },
+      ];
+    } else {
+      // אחרת, אלו האפשרויות הרגילות
+      options = [
+        { value: 'קודקוד', icon: ShieldCheck, bgClass: 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm', iconClass: 'text-blue-600' },
+        { value: 'משנה', icon: ShieldAlert, bgClass: 'bg-orange-50 border-orange-500 text-orange-700 shadow-sm', iconClass: 'text-orange-600' },
+      ];
+    }
+
+    return options.map((opt) => {
+      const isSelected = statuses[area] === opt.value;
+      const IconComp = opt.icon;
+      
+      return (
+        <label
+          key={opt.value}
+          className={`flex-1 md:flex-none flex items-center justify-center gap-2 p-3 md:px-6 rounded-lg cursor-pointer border-2 transition-all font-semibold select-none ${
+            isSelected
+              ? opt.bgClass
+              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'
+          }`}
+        >
+          <input
+            type="radio"
+            name={`area_${area}`}
+            value={opt.value}
+            checked={isSelected}
+            onChange={() => handleStatusChange(area, opt.value)}
+            className="hidden"
+          />
+          <IconComp className={`w-5 h-5 ${isSelected ? opt.iconClass : 'text-slate-400'}`} />
+          {opt.value}
+        </label>
+      );
+    });
+  };
+
   if (error) {
     return (
       <div
@@ -293,13 +348,21 @@ export default function App() {
       dir="rtl"
       className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800 relative overflow-hidden"
     >
-      {/* בועת ההתראה הקופצת (Toast) */}
-      {toastMessage && (
-        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-blue-900 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 border-2 border-blue-400 animate-bounce">
-          <BellRing className="w-6 h-6 text-yellow-400 animate-pulse" />
-          <span className="font-bold text-lg">{toastMessage}</span>
-        </div>
-      )}
+      {/* בועות ההתראה הקופצות (Toasts) - יכולות להופיע כמה במקביל */}
+      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-3 w-full max-w-sm px-4 items-center pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="bg-blue-900 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 border-2 border-blue-400 animate-bounce pointer-events-auto"
+          >
+            <BellRing className="w-6 h-6 text-yellow-400 animate-pulse shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-bold text-lg">{toast.message}</span>
+              <span className="text-xs text-blue-200 mt-0.5" dir="ltr">{toast.timestamp}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 mt-12 md:mt-0">
         <div className="bg-slate-800 text-white p-6 relative">
@@ -341,55 +404,7 @@ export default function App() {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                <label
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 p-3 md:px-6 rounded-lg cursor-pointer border-2 transition-all font-semibold select-none ${
-                    statuses[area] === 'קודקוד'
-                      ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={`area_${area}`}
-                    value="קודקוד"
-                    checked={statuses[area] === 'קודקוד'}
-                    onChange={() => handleStatusChange(area, 'קודקוד')}
-                    className="hidden"
-                  />
-                  <ShieldCheck
-                    className={`w-5 h-5 ${
-                      statuses[area] === 'קודקוד'
-                        ? 'text-blue-600'
-                        : 'text-slate-400'
-                    }`}
-                  />
-                  קודקוד
-                </label>
-
-                <label
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 p-3 md:px-6 rounded-lg cursor-pointer border-2 transition-all font-semibold select-none ${
-                    statuses[area] === 'משנה'
-                      ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={`area_${area}`}
-                    value="משנה"
-                    checked={statuses[area] === 'משנה'}
-                    onChange={() => handleStatusChange(area, 'משנה')}
-                    className="hidden"
-                  />
-                  <ShieldAlert
-                    className={`w-5 h-5 ${
-                      statuses[area] === 'משנה'
-                        ? 'text-orange-600'
-                        : 'text-slate-400'
-                    }`}
-                  />
-                  משנה
-                </label>
+                {renderAreaOptions(area)}
               </div>
             </div>
           ))}
