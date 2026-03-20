@@ -45,8 +45,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-// הוספנו את חמ״ל מעל תאג״ד לרשימה
-const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ', 'חמ״ל', 'תאג״ד'];
+// הוספנו את חמ״ל בט״ש וחמ״ל התקפי מעל תאג״ד לרשימה, ואת אזור הקשר מעל התאג״ד
+const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ', 'חמ״ל בט״ש', 'חמ״ל התקפי', 'קשר', 'תאג״ד'];
 
 export default function App() {
   // הגדרת סוגי נתונים מדויקים (Types) עבור ה-State
@@ -269,7 +269,12 @@ export default function App() {
         { value: 'קווין', icon: UserIcon, bgClass: 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm', iconClass: 'text-emerald-600' },
         { value: 'עמינדב', icon: UserIcon, bgClass: 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm', iconClass: 'text-purple-600' },
       ];
-    } else if (area === 'חמ״ל') {
+    } else if (area === 'קשר') {
+      options = [
+        { value: 'נגדי', icon: UserIcon, bgClass: 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm', iconClass: 'text-rose-600' },
+        { value: 'רון', icon: UserIcon, bgClass: 'bg-fuchsia-50 border-fuchsia-500 text-fuchsia-700 shadow-sm', iconClass: 'text-fuchsia-600' },
+      ];
+    } else if (area === 'חמ״ל בט״ש' || area === 'חמ״ל התקפי') {
       options = [
         { value: 'לירון', icon: UserIcon, bgClass: 'bg-pink-50 border-pink-500 text-pink-700 shadow-sm', iconClass: 'text-pink-600' },
         { value: 'נועם', icon: UserIcon, bgClass: 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm', iconClass: 'text-teal-600' },
