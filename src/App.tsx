@@ -278,7 +278,7 @@ export default function App() {
       options = [
         { value: 'לירון', icon: UserIcon, bgClass: 'bg-pink-50 border-pink-500 text-pink-700 shadow-sm', iconClass: 'text-pink-600' },
         { value: 'נועם', icon: UserIcon, bgClass: 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm', iconClass: 'text-teal-600' },
-        { value: 'ליהי', icon: UserIcon, bgClass: 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm', iconClass: 'text-amber-600' },
+        { value: 'ליהיא', icon: UserIcon, bgClass: 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm', iconClass: 'text-amber-600' },
         { value: 'שירה', icon: UserIcon, bgClass: 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm', iconClass: 'text-cyan-600' },
       ];
     } else {
