@@ -45,8 +45,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-// הוספנו את חמ״ל בט״ש וחמ״ל התקפי מעל תאג״ד לרשימה, ואת אזור הקשר מעל התאג״ד
-const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ', 'חמ״ל בט״ש', 'חמ״ל התקפי', 'קשר', 'תאג״ד'];
+// הוספנו את אזור המודיעין מעל תאג״ד לרשימה
+const AREAS = ['מג״ד', 'א', 'ב', 'ג', 'ד', 'פלס״מ', 'חמ״ל בט״ש', 'חמ״ל התקפי', 'קשר', 'מודיעין', 'תאג״ד'];
 
 export default function App() {
   // הגדרת סוגי נתונים מדויקים (Types) עבור ה-State
@@ -273,6 +273,11 @@ export default function App() {
       options = [
         { value: 'נגדי', icon: UserIcon, bgClass: 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm', iconClass: 'text-rose-600' },
         { value: 'רון', icon: UserIcon, bgClass: 'bg-fuchsia-50 border-fuchsia-500 text-fuchsia-700 shadow-sm', iconClass: 'text-fuchsia-600' },
+      ];
+    } else if (area === 'מודיעין') {
+      options = [
+        { value: 'דביר', icon: UserIcon, bgClass: 'bg-sky-50 border-sky-500 text-sky-700 shadow-sm', iconClass: 'text-sky-600' },
+        { value: 'עידן', icon: UserIcon, bgClass: 'bg-violet-50 border-violet-500 text-violet-700 shadow-sm', iconClass: 'text-violet-600' },
       ];
     } else if (area === 'חמ״ל בט״ש' || area === 'חמ״ל התקפי') {
       options = [
