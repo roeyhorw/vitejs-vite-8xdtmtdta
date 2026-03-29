@@ -55,6 +55,7 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  
   // מנגנון התראות (מערך כדי לתמוך בכמה הודעות במקביל)
   const [toasts, setToasts] = useState<{ id: number; message: string; timestamp: string }[]>([]);
   const [notificationsEnabled, setNotificationsEnabled] =
